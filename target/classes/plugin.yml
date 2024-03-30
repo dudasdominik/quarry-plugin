@@ -1,0 +1,4 @@
+name: Quarry
+version: '1.0-SNAPSHOT'
+main: bakos.geci.quarry.Quarry
+api-version: '1.20'
