@@ -8,12 +8,21 @@ import org.bukkit.block.BlockState;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryOpenEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 
 public class QuarryInterfaceBlocker implements Listener{
 
-        @EventHandler
-        public void onInventoryOpen(InventoryOpenEvent e){
+    @EventHandler
+    public void onPlayerInteract(PlayerInteractEvent event) {
+        Block block = event.getClickedBlock();
+        Beacon beacon = (Beacon) block.getState();
 
+        if (beacon.getCustomName().equals(ChatColor.GOLD + "" + ChatColor.BOLD + "Quarry") && event.getAction().name().equals("RIGHT_CLICK_BLOCK")) {
+            event.setCancelled(true);
+            SelectionScreen screen = new SelectionScreen();
+            event.getPlayer().openInventory(screen.getInventory());
         }
+    }
 }
