@@ -8,6 +8,9 @@ public final class Quarry extends JavaPlugin {
     public void onEnable() {
         QuarryRecipe recipe = new QuarryRecipe(this);
         recipe.createCustomRecipe();
+        getCommand("quarry").setExecutor(new QuarryCommand());
+        getServer().getPluginManager().registerEvents(new InventoryEvents(), this);
+        getServer().getPluginManager().registerEvents(new QuarryInterfaceBlocker(), this);
     }
 
     @Override

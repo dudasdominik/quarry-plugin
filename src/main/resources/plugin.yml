@@ -2,3 +2,7 @@ name: Quarry
 version: '${project.version}'
 main: bakos.geci.quarry.Quarry
 api-version: '1.20'
+commands:
+  quarry:
+    description: Quarry command
+    usage: /<command>
