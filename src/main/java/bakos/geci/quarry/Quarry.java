@@ -6,8 +6,8 @@ public final class Quarry extends JavaPlugin {
 
     @Override
     public void onEnable() {
-        // Plugin startup logic
-
+        QuarryRecipe recipe = new QuarryRecipe(this);
+        recipe.createCustomRecipe();
     }
 
     @Override
