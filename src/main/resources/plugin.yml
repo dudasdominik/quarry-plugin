@@ -1,0 +1,4 @@
+name: Quarry
+version: '${project.version}'
+main: bakos.geci.quarry.Quarry
+api-version: '1.20'
