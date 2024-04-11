@@ -22,7 +22,7 @@ public class SelectionScreen implements InventoryHolder {
             this.inv = inv;
         }
     }
-
+    // Initialize the inventory
     private void init(){
         ItemStack item;
         for(int i = 0; i < INVENTORY_SIZE; i++){
@@ -35,7 +35,7 @@ public class SelectionScreen implements InventoryHolder {
             }
         }
     }
-
+    // Create an item with a name, material, lore and amount
     private ItemStack createItem (String name, Material material, List<String> lore, int amount){
        ItemStack newItem = new ItemStack(material, amount);
        ItemMeta meta = newItem.getItemMeta();

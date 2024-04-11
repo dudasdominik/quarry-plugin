@@ -12,12 +12,14 @@ public class InventoryEvents implements Listener {
 
     @EventHandler
     public void onCLick(InventoryClickEvent e){
+        // Check if the clicked inventory is null
         if(e.getClickedInventory() == null) {return;}
         ItemStack clickedItem = e.getCurrentItem();
+        // Check if the clicked item is null
         if(e.getCurrentItem().getType() == Material.GRAY_STAINED_GLASS_PANE && e.getClickedInventory().getHolder() instanceof SelectionScreen){
             e.setCancelled(true);
         }
-
+        // Check if the clicked inventory is the SelectionScreen
         if(e.getClickedInventory().getHolder() instanceof SelectionScreen){
             int clickedSlot = e.getSlot();
 
