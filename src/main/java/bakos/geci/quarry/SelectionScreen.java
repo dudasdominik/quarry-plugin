@@ -15,15 +15,20 @@ public class SelectionScreen implements InventoryHolder {
     private static final int INVENTORY_SIZE = 45;
 
     public SelectionScreen() {
-        inv = Bukkit.createInventory(this, INVENTORY_SIZE, "Quarry");
-        init();
+        if (inv == null) {
+            this.inv = Bukkit.createInventory(this, INVENTORY_SIZE, "Quarry");
+            init();
+        } else {
+            this.inv = inv;
+        }
     }
 
     private void init(){
         ItemStack item;
         for(int i = 0; i < INVENTORY_SIZE; i++){
             if(i == 13|| i == 25 || i == 31){
-
+                item = new ItemStack(Material.AIR, 1);
+                inv.setItem(i, item);
             }else {
                 item = createItem(" ", Material.GRAY_STAINED_GLASS_PANE, null, 1);
                 inv.setItem(i, item);
