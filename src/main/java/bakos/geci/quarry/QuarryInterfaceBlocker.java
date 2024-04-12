@@ -17,8 +17,11 @@ import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
 
-public class QuarryInterfaceBlocker implements Listener{
+import java.util.HashSet;
+import java.util.Set;
 
+public class QuarryInterfaceBlocker implements Listener{
+    private Set<Location> borderBlocks = new HashSet<>();
     @EventHandler
     public void onPlayerInteract(PlayerInteractEvent event) {
         Block block = event.getClickedBlock();
@@ -50,6 +53,12 @@ public class QuarryInterfaceBlocker implements Listener{
     @EventHandler
     public void onBlockBreak(BlockBreakEvent event) {
         Block block = event.getBlock();
+        if(borderBlocks.contains(block.getLocation())){
+            event.setCancelled(true);
+            System.out.println(borderBlocks.size());
+            System.out.println("Block is part of the border");
+        }
+        System.out.println("Block is not part of the border");
         if (block.getState() instanceof Beacon) {
             Beacon beacon = (Beacon) block.getState();
             // Check if the block is a quarry
@@ -67,7 +76,10 @@ public class QuarryInterfaceBlocker implements Listener{
                     InventoryStorage.playerInventories.remove(block.getLocation());
                 }
             }
+
         }
+
+
     }
 
     private void createQuarryArea(BlockFace facing, Block block, int size) {
@@ -84,8 +96,12 @@ public class QuarryInterfaceBlocker implements Listener{
                 if (x == startX || x == endX || z == startZ || z == endZ) {
                     boolean isBlack = (x + z) % 2 == 0; // Check if sum of x and z is even
                     Material material = isBlack ? Material.BLACK_CONCRETE : Material.YELLOW_CONCRETE;
-                    block.getWorld().getBlockAt(x, startY, z).setType(material);
-                    block.getWorld().getBlockAt(x, endY, z).setType(material);
+                    Block block1 = block.getWorld().getBlockAt(x, startY, z);
+                    Block block2 = block.getWorld().getBlockAt(x, endY, z);
+                    block1.setType(material);
+                    block2.setType(material);
+                    borderBlocks.add(block1.getLocation());
+                    borderBlocks.add(block2.getLocation());
                 }
             }
         }
@@ -95,10 +111,18 @@ public class QuarryInterfaceBlocker implements Listener{
             if (startX != endX && startZ != endZ) { // To avoid filling in the corners when the size is too small
                 boolean isBlack = (y) % 2 == 0 ; // Check if sum of y and startX or startZ is even
                 Material material = isBlack ? Material.BLACK_CONCRETE : Material.YELLOW_CONCRETE;
-                block.getWorld().getBlockAt(startX, y, startZ).setType(material);
-                block.getWorld().getBlockAt(startX, y, endZ).setType(material);
-                block.getWorld().getBlockAt(endX, y, startZ).setType(material);
-                block.getWorld().getBlockAt(endX, y, endZ).setType(material);
+                Block block1 = block.getWorld().getBlockAt(startX, y, startZ);
+                Block block2 = block.getWorld().getBlockAt(startX, y, endZ);
+                Block block3 = block.getWorld().getBlockAt(endX, y, startZ);
+                Block block4 = block.getWorld().getBlockAt(endX, y, endZ);
+                block1.setType(material);
+                block2.setType(material);
+                block3.setType(material);
+                block4.setType(material);
+                borderBlocks.add(block1.getLocation());
+                borderBlocks.add(block2.getLocation());
+                borderBlocks.add(block3.getLocation());
+                borderBlocks.add(block4.getLocation());
             }
         }
     }
@@ -114,7 +138,9 @@ public class QuarryInterfaceBlocker implements Listener{
         for (int x = startX; x <= endX; x++) {
             for (int y = startY; y <= endY; y++) {
                 for (int z = startZ; z <= endZ + 1; z++) {
-                    block.getWorld().getBlockAt(x, y, z).setType(Material.AIR);
+                    Block block1 = block.getWorld().getBlockAt(x, y, z);
+                    block1.setType(Material.AIR);
+                    borderBlocks.remove(block1.getLocation());
                 }
             }
         }
