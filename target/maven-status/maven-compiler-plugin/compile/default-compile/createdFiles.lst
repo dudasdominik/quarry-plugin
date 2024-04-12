@@ -1,6 +1,8 @@
 bakos\geci\quarry\QuarryInterfaceBlocker.class
+bakos\geci\quarry\QuarryMiner.class
 bakos\geci\quarry\SelectionScreen.class
 bakos\geci\quarry\QuarryRecipe.class
 bakos\geci\quarry\InventoryStorage.class
+bakos\geci\quarry\QuarryMiner$1.class
 bakos\geci\quarry\Quarry.class
 bakos\geci\quarry\InventoryEvents.class

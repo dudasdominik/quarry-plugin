@@ -11,18 +11,24 @@ import org.bukkit.block.BlockState;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
-import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.Inventory;
-import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.util.Vector;
+import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.HashSet;
 import java.util.Set;
 
 public class QuarryInterfaceBlocker implements Listener{
     private Set<Location> borderBlocks = new HashSet<>();
+
+    private QuarryMiner miner;
+    public QuarryInterfaceBlocker(QuarryMiner miner) {
+        this.miner = miner;
+
+    }
+
+
     @EventHandler
     public void onPlayerInteract(PlayerInteractEvent event) {
         Block block = event.getClickedBlock();
@@ -36,6 +42,8 @@ public class QuarryInterfaceBlocker implements Listener{
             if (beacon.getCustomName().equals(ChatColor.GOLD + "" + ChatColor.BOLD + "Quarry") && event.getAction().name().equals("RIGHT_CLICK_BLOCK")) {
                 event.setCancelled(true);
                 Inventory existingInventory = InventoryStorage.playerInventories.get(block.getLocation());
+
+                miner.startMining(block.getLocation(), 16);
                 // If the player has not opened the inventory yet, create a new one
                 if (existingInventory == null) {
                     SelectionScreen screen = new SelectionScreen();
@@ -56,16 +64,14 @@ public class QuarryInterfaceBlocker implements Listener{
         Block block = event.getBlock();
         if(borderBlocks.contains(block.getLocation())){
             event.setCancelled(true);
-            System.out.println(borderBlocks.size());
-            System.out.println("Block is part of the border");
         }
-        System.out.println("Block is not part of the border");
         if (block.getState() instanceof Beacon) {
             Beacon beacon = (Beacon) block.getState();
             // Check if the block is a quarry
             if (beacon.getCustomName().equals(ChatColor.GOLD + "" + ChatColor.BOLD + "Quarry")) {
                 Location blockLocation = block.getLocation();
                 Inventory inventory = InventoryStorage.playerInventories.get(blockLocation);
+                miner.stopMining();
                 // Drop all items in the inventory
                 if (inventory != null) {
                     for (ItemStack item : inventory.getContents()) {
