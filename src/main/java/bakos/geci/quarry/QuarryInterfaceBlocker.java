@@ -3,6 +3,7 @@ package bakos.geci.quarry;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.World;
 import org.bukkit.block.Beacon;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
@@ -83,6 +84,7 @@ public class QuarryInterfaceBlocker implements Listener{
     }
 
     private void createQuarryArea(BlockFace facing, Block block, int size) {
+        World world = block.getWorld();
         int startX = block.getX();
         int startY = block.getY();
         int startZ = (int) (block.getZ() + facing.getDirection().getZ());
@@ -90,41 +92,47 @@ public class QuarryInterfaceBlocker implements Listener{
         int endY = startY + size - 1;
         int endZ = startZ + size - 1;
 
-        // Create the top and bottom layers
+        createLayers(world, startX, startY, startZ, endX, endY, endZ);
+        createPillars(world, startX, startY, startZ, endX, endY, endZ);
+    }
+
+    private void createLayers(World world,int startX, int startY, int startZ, int endX, int endY, int endZ) {
         for (int x = startX; x <= endX; x++) {
             for (int z = startZ; z <= endZ; z++) {
                 if (x == startX || x == endX || z == startZ || z == endZ) {
-                    boolean isBlack = (x + z) % 2 == 0; // Check if sum of x and z is even
-                    Material material = isBlack ? Material.BLACK_CONCRETE : Material.YELLOW_CONCRETE;
-                    Block block1 = block.getWorld().getBlockAt(x, startY, z);
-                    Block block2 = block.getWorld().getBlockAt(x, endY, z);
-                    block1.setType(material);
-                    block2.setType(material);
-                    borderBlocks.add(block1.getLocation());
-                    borderBlocks.add(block2.getLocation());
+                    createLayerBlock(world,x, startY, z, endY);
                 }
             }
         }
+    }
 
-        // Create the vertical pillars at the corners
+    private void createLayerBlock(World world, int x, int yStart, int z, int yEnd) {
+        boolean isBlack = (x + z) % 2 == 0;
+        Material material = isBlack ? Material.BLACK_CONCRETE : Material.YELLOW_CONCRETE;
+        createBlock(world, x, yStart, z, material);
+        createBlock(world, x, yEnd, z, material);
+    }
+
+    private void createPillars(World world, int startX, int startY, int startZ, int endX, int endY, int endZ) {
         for (int y = startY + 1; y < endY; y++) {
-            if (startX != endX && startZ != endZ) { // To avoid filling in the corners when the size is too small
-                boolean isBlack = (y) % 2 == 0 ; // Check if sum of y and startX or startZ is even
-                Material material = isBlack ? Material.BLACK_CONCRETE : Material.YELLOW_CONCRETE;
-                Block block1 = block.getWorld().getBlockAt(startX, y, startZ);
-                Block block2 = block.getWorld().getBlockAt(startX, y, endZ);
-                Block block3 = block.getWorld().getBlockAt(endX, y, startZ);
-                Block block4 = block.getWorld().getBlockAt(endX, y, endZ);
-                block1.setType(material);
-                block2.setType(material);
-                block3.setType(material);
-                block4.setType(material);
-                borderBlocks.add(block1.getLocation());
-                borderBlocks.add(block2.getLocation());
-                borderBlocks.add(block3.getLocation());
-                borderBlocks.add(block4.getLocation());
+            if (startX != endX && startZ != endZ) {
+                createPillarBlock(world,startX, y, startZ, endZ);
+                createPillarBlock(world, endX, y, startZ, endZ);
             }
         }
+    }
+
+    private void createPillarBlock(World world, int x, int y, int zStart, int zEnd) {
+        boolean isBlack = (y) % 2 == 0;
+        Material material = isBlack ? Material.BLACK_CONCRETE : Material.YELLOW_CONCRETE;
+        createBlock(world, x, y, zStart, material);
+        createBlock(world, x, y, zEnd, material);
+    }
+
+    private void createBlock(World world, int x, int y, int z, Material material) {
+        Block block = world.getBlockAt(x, y, z);
+        block.setType(material);
+        borderBlocks.add(block.getLocation());
     }
 
     private void removeQuarryArea(Block block, int size) {
@@ -138,12 +146,16 @@ public class QuarryInterfaceBlocker implements Listener{
         for (int x = startX; x <= endX; x++) {
             for (int y = startY; y <= endY; y++) {
                 for (int z = startZ; z <= endZ + 1; z++) {
-                    Block block1 = block.getWorld().getBlockAt(x, y, z);
-                    block1.setType(Material.AIR);
-                    borderBlocks.remove(block1.getLocation());
+                    removeBlockAt(block.getWorld(), x, y, z);
                 }
             }
         }
+    }
+
+    private void removeBlockAt(World world, int x, int y, int z) {
+        Block block = world.getBlockAt(x, y, z);
+        block.setType(Material.AIR);
+        borderBlocks.remove(block.getLocation());
     }
 
 }
