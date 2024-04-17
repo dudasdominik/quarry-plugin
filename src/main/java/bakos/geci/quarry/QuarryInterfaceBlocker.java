@@ -11,23 +11,32 @@ import org.bukkit.block.BlockState;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 public class QuarryInterfaceBlocker implements Listener{
     private Set<Location> borderBlocks = new HashSet<>();
+    private Map<Location, QuarryMiner> miners = new HashMap<>();
 
-    private QuarryMiner miner;
-    public QuarryInterfaceBlocker(QuarryMiner miner) {
-        this.miner = miner;
+
+    private JavaPlugin plugin;
+    public QuarryInterfaceBlocker(JavaPlugin plugin) {
+        this.plugin = plugin;
 
     }
 
+
+  public QuarryMiner getMiner(Location location){
+        return miners.get(location);
+  }
 
     @EventHandler
     public void onPlayerInteract(PlayerInteractEvent event) {
@@ -42,19 +51,31 @@ public class QuarryInterfaceBlocker implements Listener{
             if (beacon.getCustomName().equals(ChatColor.GOLD + "" + ChatColor.BOLD + "Quarry") && event.getAction().name().equals("RIGHT_CLICK_BLOCK")) {
                 event.setCancelled(true);
                 Inventory existingInventory = InventoryStorage.playerInventories.get(block.getLocation());
-
-                miner.startMining(block.getLocation(), 16);
                 // If the player has not opened the inventory yet, create a new one
                 if (existingInventory == null) {
                     SelectionScreen screen = new SelectionScreen();
                     InventoryStorage.playerInventories.put(block.getLocation(), screen.getInventory());
                     event.getPlayer().openInventory(screen.getInventory());
-                    createQuarryArea(event.getPlayer().getFacing(), block, 16);
                 } else {
                     event.getPlayer().openInventory(existingInventory);
                 }
 
 
+            }
+        }
+    }
+
+    @EventHandler
+    public void onBlockPlace(BlockPlaceEvent event) {
+        Block block = event.getBlock();
+        if (block.getState() instanceof Beacon) {
+            Beacon beacon = (Beacon) block.getState();
+            // Check if the block is a quarry
+            if (beacon.getCustomName().equals(ChatColor.GOLD + "" + ChatColor.BOLD + "Quarry")) {
+                createQuarryArea(event.getPlayer().getFacing(), block, 16);
+                QuarryMiner miner = new QuarryMiner(plugin);
+                miners.put(block.getLocation(), miner);
+                miner.startMining(block.getLocation(), 16);
             }
         }
     }
@@ -71,7 +92,12 @@ public class QuarryInterfaceBlocker implements Listener{
             if (beacon.getCustomName().equals(ChatColor.GOLD + "" + ChatColor.BOLD + "Quarry")) {
                 Location blockLocation = block.getLocation();
                 Inventory inventory = InventoryStorage.playerInventories.get(blockLocation);
-                miner.stopMining();
+               QuarryMiner miner = miners.get(blockLocation);
+                if (miner != null) {
+                    miner.stopMining();
+                    miners.remove(blockLocation);
+                    System.out.println(miners.get(blockLocation));
+                }
                 // Drop all items in the inventory
                 if (inventory != null) {
                     for (ItemStack item : inventory.getContents()) {
