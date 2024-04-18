@@ -17,35 +17,46 @@ public class QuarryMiner {
     private World world;
     private int size;
     private JavaPlugin plugin;
+
+    private int originalX, originalZ;
     private int blockCounter = 0;
 
-    public QuarryMiner(JavaPlugin plugin) {
+    public QuarryMiner(JavaPlugin plugin, Location location) {
         this.plugin = plugin;
-    }
-
-    public void startMining(Location location, int size) {
-        if (!hasFuel(location)) {
-            return;
-        }
-
+        this.taskID = -1;
         this.world = location.getWorld();
         this.x = location.getBlockX() + 1;
         this.y = location.getBlockY() - 1;
         this.z = location.getBlockZ() + 2;
+        this.originalX = this.x; // And these lines
+        this.originalZ = this.z;
+    }
+
+    public void startMining(Location location, int size) {
+        if (!hasFuel(location)) {
+            System.out.println("No fuel to start mining");
+            return;
+        }
+
+        if(isMining()){
+            System.out.println("Already mining");
+            return;
+        }
+
+
         this.size = size;
 
-        int startX = x;
-        int startZ = z;
+
 
         this.taskID = Bukkit.getScheduler().scheduleSyncRepeatingTask(plugin, new Runnable() {
             @Override
             public void run() {
-                mineBlock(startX, startZ, location);
+                mineBlock(originalX, originalZ, location);
             }
         }, 0L, 3L);
     }
 
-    private boolean hasFuel(Location location) {
+    public boolean hasFuel(Location location) {
         Inventory inventory = InventoryStorage.playerInventories.get(location);
         if (inventory == null) {
             return false;
@@ -53,7 +64,6 @@ public class QuarryMiner {
 
         for (ItemStack item : inventory.getContents()) {
             if (item != null && isFuel(item)) {
-                System.out.println("Has fuel");
                 return true;
             }
         }
@@ -69,7 +79,9 @@ public class QuarryMiner {
     }
 
     public boolean isMining() {
-        return Bukkit.getScheduler().isCurrentlyRunning(taskID);
+        System.out.println("Is mining");
+        System.out.println(Bukkit.getScheduler().isQueued(taskID) + " - " + taskID + " - " + x + " - " + y + " - " + z);
+        return taskID >= 0 && Bukkit.getScheduler().isQueued(taskID);
     }
 
     private void mineBlock(int startX, int startZ, Location location) {

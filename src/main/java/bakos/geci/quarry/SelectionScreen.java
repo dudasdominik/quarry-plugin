@@ -26,10 +26,13 @@ public class SelectionScreen implements InventoryHolder {
     private void init(){
         ItemStack item;
         for(int i = 0; i < INVENTORY_SIZE; i++){
-            if(i == 13|| i == 25 || i == 31){
+            if(i == 22|| i == 9 || i == 18 || i == 27){
                 item = new ItemStack(Material.AIR, 1);
                 inv.setItem(i, item);
-            }else {
+            } else if (i == 44)  {
+                item = createItem("Pick Up", Material.GREEN_CANDLE, null, 1);
+                inv.setItem(i, item);
+            } else {
                 item = createItem(" ", Material.GRAY_STAINED_GLASS_PANE, null, 1);
                 inv.setItem(i, item);
             }

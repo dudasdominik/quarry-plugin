@@ -23,8 +23,11 @@ import java.util.Map;
 import java.util.Set;
 
 public class QuarryInterfaceBlocker implements Listener{
-    private Set<Location> borderBlocks = new HashSet<>();
-    private Map<Location, QuarryMiner> miners = new HashMap<>();
+    private final Set<Location> borderBlocks = new HashSet<>();
+    private final Map<Location, QuarryMiner> miners = new HashMap<>();
+
+    private final Map<Inventory, Location> inventoryLocations = new HashMap<>();
+
 
 
     private JavaPlugin plugin;
@@ -55,6 +58,7 @@ public class QuarryInterfaceBlocker implements Listener{
                 if (existingInventory == null) {
                     SelectionScreen screen = new SelectionScreen();
                     InventoryStorage.playerInventories.put(block.getLocation(), screen.getInventory());
+                    inventoryLocations.put(screen.getInventory(), block.getLocation());
                     event.getPlayer().openInventory(screen.getInventory());
                 } else {
                     event.getPlayer().openInventory(existingInventory);
@@ -73,7 +77,7 @@ public class QuarryInterfaceBlocker implements Listener{
             // Check if the block is a quarry
             if (beacon.getCustomName().equals(ChatColor.GOLD + "" + ChatColor.BOLD + "Quarry")) {
                 createQuarryArea(event.getPlayer().getFacing(), block, 16);
-                QuarryMiner miner = new QuarryMiner(plugin);
+                QuarryMiner miner = new QuarryMiner(plugin, block.getLocation());
                 miners.put(block.getLocation(), miner);
                 miner.startMining(block.getLocation(), 16);
             }
@@ -89,6 +93,11 @@ public class QuarryInterfaceBlocker implements Listener{
         if (block.getState() instanceof Beacon) {
             Beacon beacon = (Beacon) block.getState();
             // Check if the block is a quarry
+
+            if (beacon.getCustomName().equals(ChatColor.GOLD + "" + ChatColor.BOLD + "Quarry")) {
+                event.setCancelled(true);
+            }
+
             if (beacon.getCustomName().equals(ChatColor.GOLD + "" + ChatColor.BOLD + "Quarry")) {
                 Location blockLocation = block.getLocation();
                 Inventory inventory = InventoryStorage.playerInventories.get(blockLocation);
@@ -105,9 +114,10 @@ public class QuarryInterfaceBlocker implements Listener{
                             block.getWorld().dropItemNaturally(blockLocation, item);
                         }
                     }
-                    removeQuarryArea(block, 16);
+                    inventoryLocations.remove(inventory);
                     InventoryStorage.playerInventories.remove(block.getLocation());
                 }
+                removeQuarryArea(block, 16);
             }
 
         }
@@ -167,7 +177,7 @@ public class QuarryInterfaceBlocker implements Listener{
         borderBlocks.add(block.getLocation());
     }
 
-    private void removeQuarryArea(Block block, int size) {
+    public void removeQuarryArea(Block block, int size) {
         int startX = block.getX();
         int startY = block.getY();
         int startZ = block.getZ();
@@ -188,6 +198,10 @@ public class QuarryInterfaceBlocker implements Listener{
         Block block = world.getBlockAt(x, y, z);
         block.setType(Material.AIR);
         borderBlocks.remove(block.getLocation());
+    }
+
+    public Location getLocationForInventory(Inventory inventory) {
+        return inventoryLocations.get(inventory);
     }
 
 }
